@@ -16,6 +16,12 @@ from bayesian_engine import BayesianSignalEngine, MarketState
 
 SYMBOLS = ["BTCUSDT", "ETHUSDT"]
 
+# Hyperliquid 币种映射: 显示名 -> Hyperliquid币种名
+HL_SYMBOLS = {
+    "BTCUSDT": "BTC",
+    "ETHUSDT": "ETH",
+}
+
 
 def run(symbol: str = "BTCUSDT") -> dict:
     print(f"\n{'='*50}")
@@ -23,8 +29,9 @@ def run(symbol: str = "BTCUSDT") -> dict:
     print(f"{'='*50}")
     
     # 1. 获取历史费率校准先验
+    hl_symbol = HL_SYMBOLS.get(symbol, symbol)
     print("[1/4] 获取历史费率...")
-    rate_history = get_funding_rate_history(symbol, 50)
+    rate_history = get_funding_rate_history(hl_symbol, 50)
     print(f"       共 {len(rate_history)} 条历史数据")
     if len(rate_history):
         print(f"       均值: {np.mean(rate_history):.4f}%  标准差: {np.std(rate_history):.4f}%")
@@ -35,7 +42,7 @@ def run(symbol: str = "BTCUSDT") -> dict:
     
     # 3. 获取当前市场数据
     print("[3/4] 获取当前市场数据...")
-    raw = get_all_data(symbol)
+    raw = get_all_data(symbol, hl_symbol)
     if raw.get("funding_rate") is None or raw.get("price", 0) == 0:
         print("  [!] API 不可用，使用模拟数据")
         raw = get_mock_data(symbol)
