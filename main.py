@@ -10,7 +10,7 @@ import os
 import numpy as np
 from datetime import datetime
 
-import numpy as np
+from data_fetcher import get_all_data, get_mock_data, get_funding_rate_history, get_funding_rate
 from bayesian_engine import BayesianSignalEngine, MarketState
 
 
