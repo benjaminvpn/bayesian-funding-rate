@@ -11,7 +11,7 @@ import numpy as np
 BYBIT_BASE = "https://api.bybit.com"
 
 
-def fetch_json(url: str) -> dict:
+def fetch_json(url):
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
@@ -21,14 +21,14 @@ def fetch_json(url: str) -> dict:
         return {}
 
 
-def get_funding_rate(symbol: str = "BTCUSDT") -> float:
+def get_funding_rate(symbol="BTCUSDT"):
     data = fetch_json(f"{BYBIT_BASE}/v5/market/tickers?category=linear&symbol={symbol}")
     ticker = data.get("result", {}).get("list", [{}])[0]
     rate = float(ticker.get("fundingRate", 0))
     return round(rate * 3 * 365 * 100, 4)
 
 
-def get_funding_rate_history(symbol: str = "BTCUSDT", limit: int = 50) -> np.ndarray:
+def get_funding_rate_history(symbol="BTCUSDT", limit=50):
     data = fetch_json(f"{BYBIT_BASE}/v5/market/funding/history?category=linear&symbol={symbol}&limit={limit}")
     items = data.get("result", {}).get("list", [])
     if not items:
@@ -36,19 +36,18 @@ def get_funding_rate_history(symbol: str = "BTCUSDT", limit: int = 50) -> np.nda
     return np.array([float(i["fundingRate"]) * 3 * 365 * 100 for i in items])
 
 
-def get_all_data(symbol: str = "BTCUSDT") -> dict:
+def get_all_data(symbol="BTCUSDT"):
     print(f"  [*] 获取 {symbol} 数据 (Bybit)...")
-
     rate = get_funding_rate(symbol)
     print(f"      资金费率: {rate}% 年化")
-
+    
     ticker_data = fetch_json(f"{BYBIT_BASE}/v5/market/tickers?category=linear&symbol={symbol}")
     ticker = ticker_data.get("result", {}).get("list", [{}])[0]
     price = float(ticker.get("lastPrice", 0))
     volume = float(ticker.get("volume24h", 0))
     turnover = float(ticker.get("turnover24h", 0))
     print(f"      价格: ${price:,.2f}  成交量: {volume:,.0f}")
-
+    
     oi_data = fetch_json(f"{BYBIT_BASE}/v5/market/open-interest?category=linear&symbol={symbol}&intervalTime=5min&limit=50")
     oi_items = oi_data.get("result", {}).get("list", [])
     if len(oi_items) >= 10:
@@ -57,9 +56,9 @@ def get_all_data(symbol: str = "BTCUSDT") -> dict:
     else:
         oi_z = 0.0
     print(f"      OI Z-score: {oi_z:.3f}")
-
+    
     vol_ratio = round(volume / (turnover / price), 2) if price > 0 and turnover > 0 else 1.0
-
+    
     trades = fetch_json(f"{BYBIT_BASE}/v5/market/recent-trade?category=linear&symbol={symbol}&limit=100")
     trade_list = trades.get("result", {}).get("list", [])
     if trade_list:
@@ -67,7 +66,7 @@ def get_all_data(symbol: str = "BTCUSDT") -> dict:
         liq_ratio = round(buys / len(trade_list), 2)
     else:
         liq_ratio = 1.0
-
+    
     return {
         "funding_rate": rate / 100,
         "price": price,
@@ -77,7 +76,7 @@ def get_all_data(symbol: str = "BTCUSDT") -> dict:
     }
 
 
-def get_mock_data(symbol: str = "BTCUSDT") -> dict:
+def get_mock_data(symbol="BTCUSDT"):
     mock = {
         "BTCUSDT": {"funding_rate": 0.06, "price": 105000, "oi_change": 1.2, "volume_ratio": 1.8, "liq_long_ratio": 0.4},
         "ETHUSDT": {"funding_rate": 0.04, "price": 3800, "oi_change": 0.8, "volume_ratio": 1.3, "liq_long_ratio": 0.7},
